@@ -1,12 +1,13 @@
 from flask import Flask, request, render_template
 from joblib import load
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
 
 app = Flask(__name__)
 
-# Load the pre-trained model
+# Load the pre-trained model, encoder, and feature names
 model = load('House.pkl')
+encoder = load('encoder.pkl')
+feature_names = load('feature_names.pkl')
 
 # Define the dropdown options
 dropdown_options = {
@@ -24,31 +25,22 @@ def prepare_input_data(bedrooms, bathrooms, toilets, serviced, newly_built, furn
     # Convert categorical columns to categorical dtype
     input_data[['Location', 'Currency', 'Neighborhood']] = input_data[['Location', 'Currency', 'Neighborhood']].astype('category')
 
-    # Create an encoder instance
-    encoder = OneHotEncoder(drop='first')
-
-    # Fit the encoder on the dropdown options
-    encoder.fit(pd.DataFrame(dropdown_options))
-
     # Transform the categorical features
-    loc_encoded = encoder.transform(input_data[['Location']])
-    cur_encoded = encoder.transform(input_data[['Currency']])
-    neigh_encoded = encoder.transform(input_data[['Neighborhood']])
-
-    # Get feature names from encoder categories
-    loc_cols = encoder.get_feature_names_out(['Location'])
-    cur_cols = encoder.get_feature_names_out(['Currency'])
-    neigh_cols = encoder.get_feature_names_out(['Neighborhood'])
-
-    # Concatenate encoded categorical features
-    encoded_cols = pd.DataFrame(loc_encoded.toarray(), columns=loc_cols)
-    encoded_cols = pd.concat([encoded_cols, pd.DataFrame(cur_encoded.toarray(), columns=cur_cols)], axis=1)
-    encoded_cols = pd.concat([encoded_cols, pd.DataFrame(neigh_encoded.toarray(), columns=neigh_cols)], axis=1)
+    encoded_cols = encoder.transform(input_data[['Location', 'Currency', 'Neighborhood']])
+    encoded_cols_df = pd.DataFrame(encoded_cols, columns=encoder.get_feature_names_out(['Location', 'Currency', 'Neighborhood']))
 
     # Combine encoded categorical columns with numeric columns
-    input_data_processed = pd.concat([input_data[['Bedrooms', 'Bathrooms', 'Toilets', 'Serviced', 'Newly Built', 'Furnished']], encoded_cols], axis=1)
+    input_data_processed = pd.concat([input_data[['Bedrooms', 'Bathrooms', 'Toilets', 'Serviced', 'Newly Built', 'Furnished']], encoded_cols_df], axis=1)
+
+    # Ensure the columns match the training columns
+    input_data_processed = input_data_processed.reindex(columns=feature_names, fill_value=0)
 
     return input_data_processed
+
+# Define a custom Jinja filter for formatting floats
+@app.template_filter('float_format')
+def float_format(value):
+    return "{:.2f}".format(value)
 
 @app.route('/')
 def home():
@@ -69,11 +61,13 @@ def predict_result():
         neighborhood = request.form['neighborhood']
 
         # Prepare input data for prediction
-        input_data = prepare_input_data(bedrooms, bathrooms, toilets, serviced, newly_built, furnished,
-                                        location, currency, neighborhood)
+        input_data = prepare_input_data(bedrooms, bathrooms, toilets, serviced, newly_built, furnished, location, currency, neighborhood)
 
         # Make prediction using the model
         prediction = model.predict(input_data)
+
+        # Modify the prediction by adding a zero to the back
+        prediction = prediction[0]
 
         # Render the predict.html template with the prediction result
         return render_template('predict.html', prediction=prediction)
