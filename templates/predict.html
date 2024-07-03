@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicted House Price</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Predicted House Price</h1>
+        <p class="prediction">The predicted price for the house is: ${{ prediction | float_format(2) }}</p>
+        <a href="/">Back to Prediction Form</a>
+    </div>
+</body>
+</html>

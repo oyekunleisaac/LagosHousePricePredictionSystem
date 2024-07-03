@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict House Price</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">House Price Prediction</h1>
+
+        <form action="/predict_result" method="post">
+            <label for="bedrooms">Bedrooms:</label>
+            <input type="text" id="bedrooms" name="bedrooms"><br><br>
+
+            <label for="bathrooms">Bathrooms:</label>
+            <input type="text" id="bathrooms" name="bathrooms"><br><br>
+
+            <label for="toilets">Toilets:</label>
+            <input type="text" id="toilets" name="toilets"><br><br>
+
+            <label for="serviced">Serviced (1 for Yes, 0 for No):</label>
+            <input type="text" id="serviced" name="serviced"><br><br>
+
+            <label for="newly_built">Newly Built (1 for Yes, 0 for No):</label>
+            <input type="text" id="newly_built" name="newly_built"><br><br>
+
+            <label for="furnished">Furnished (1 for Yes, 0 for No):</label>
+            <input type="text" id="furnished" name="furnished"><br><br>
+
+            <label for="location">Location:</label>
+            <select id="location" name="location">
+                <option value="Ikeja">Ikeja</option>
+                <option value="Lekki">Lekki</option>
+                <option value="Victoria Island">Victoria Island</option>
+            </select><br><br>
+
+            <label for="currency">Currency:</label>
+            <select id="currency" name="currency">
+                <option value="NGN">NGN</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </select><br><br>
+
+            <label for="neighborhood">Neighborhood:</label>
+            <select id="neighborhood" name="neighborhood">
+                <option value="GRA Ikeja">GRA Ikeja</option>
+                <option value="Phase 1">Phase 1</option>
+                <option value="Central">Central</option>
+            </select><br><br>
+
+            <input type="submit" value="Predict">
+        </form>
+
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>
